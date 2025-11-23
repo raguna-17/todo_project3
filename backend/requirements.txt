@@ -4,5 +4,9 @@ djangorestframework-simplejwt
 django-cors-headers
 django-filter
 psycopg2-binary
+pytest
+pytest-django
+pytest-cov
+factory-boy
 
 #requirements.txt
