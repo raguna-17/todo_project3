@@ -1,0 +1,30 @@
+# --- Python / Django 系 ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# venv 系（もし存在するなら）
+venv/
+env/
+
+# Django secret key とか環境変数ファイル
+.env
+.env.*
+
+# --- Docker 関連 ---
+# Docker が勝手に吐くキャッシュとかは普通リポジトリに不要
+*.pid
+
+# --- OS ゴミ ---
+.DS_Store
+
+# --- エディタ ---
+.vscode/
+.idea/
+
+# --- もしフロント作る予定があるなら（Reactとか） ---
+node_modules/
+dist/
+build/
