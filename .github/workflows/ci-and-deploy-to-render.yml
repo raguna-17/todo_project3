@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Trigger Render deploy
         env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_API_KEY: ${{ secrets.maimeromaidon }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
           # trigger a deploy on Render (Render will build from repo's Dockerfile if configured)
