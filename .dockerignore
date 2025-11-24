@@ -1,6 +1,10 @@
-node_modules
-dist
+__pycache__
+*.pyc
+.git
 .env
+*.sqlite3
+backend/venv
+node_modules
 
 
 #.dockerignore
