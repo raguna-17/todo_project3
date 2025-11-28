@@ -28,17 +28,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          pip install pytest pytest-cov
       - name: Run migrations
-        working-directory: backend
-        run: |
-          python manage.py migrate --noinput || true
-      - name: Run tests
         working-directory: backend
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
         run: |
-          pytest --maxfail=1 -q --cov=todo --cov-report=xml
+          python manage.py migrate --noinput
+      - name: Run tests with coverage
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        run: |
+          pytest --maxfail=1 -q --cov=todo --cov-report=term-missing --cov-report=xml
 
   deploy:
     needs: test
@@ -48,15 +49,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Trigger Render deploy
         env:
-          RENDER_API_KEY: ${{ secrets.maimeromaidon }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
-          # trigger a deploy on Render (Render will build from repo's Dockerfile if configured)
           curl -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
             -H "Accept: application/json" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
             -d '{}'
+
+
 
 
 #.github/workflows/ci-and-deploy-to-render.yml

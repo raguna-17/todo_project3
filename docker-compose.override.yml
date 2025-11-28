@@ -1,0 +1,15 @@
+services:
+  backend:
+    env_file:
+      - .env.local
+
+  db:
+    environment:
+      POSTGRES_DB: todo_db
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: kaibasensei
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+
+
+#docker-compose.override.yml

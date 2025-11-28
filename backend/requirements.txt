@@ -1,12 +1,28 @@
-Django>=4.2
+# Django 本体
+Django>=5.2
+
+# REST API
 djangorestframework
 djangorestframework-simplejwt
+
+# CORS 対応
 django-cors-headers
+
+# フィルタリング
 django-filter
+
+# PostgreSQL ドライバ
 psycopg2-binary
+
+# dotenv（環境変数読み込み）
+python-dotenv
+dj-database-url
+
+# テスト関連
 pytest
 pytest-django
 pytest-cov
 factory-boy
+
 
 #requirements.txt
