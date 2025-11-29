@@ -20,6 +20,9 @@ services:
       - db
     env_file:
       - .env.prod
+    environment:
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - DJANGO_DEBUG=false
 
   frontend:
     build: ./frontend

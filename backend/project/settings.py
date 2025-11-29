@@ -11,29 +11,47 @@ load_dotenv()  # Docker Compose の env_file を自動で読み込む
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "replace-me-with-secret")
-DEBUG = os.getenv("DEBUG", "False").lower() in ["true", "1"]
+DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 
-# ------------------------------
-# ホスト設定
-# ------------------------------
+# 簡易な真偽値パース（環境変数で "1","true","yes" を真とみなす）
+def env_bool(name, default=False):
+    v = os.getenv(name)
+    if v is None:
+        return default
+    return v.strip().lower() in ("1", "true", "yes", "on")
+
+# DEBUG の定義（環境変数 DJANGO_DEBUG でコントロール）
+DEBUG = env_bool("DJANGO_DEBUG", default=True)  # 開発では True にしておく
+
+
+def split_and_clean(s):
+    return [p.strip() for p in s.split(",") if p.strip()]
+
+# ALLOWED_HOSTS: 環境変数があればそれを優先、なければ開発用の明示的ホストのみ
 allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
 if allowed_hosts_env:
-    ALLOWED_HOSTS = allowed_hosts_env.split(",")
+    ALLOWED_HOSTS = split_and_clean(allowed_hosts_env)
 else:
-    # 開発・Docker 用デフォルト
-    ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1", "backend"]
+    # 開発用デフォルト — 明示的に列挙（絶対に "*" を置かない）
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", "backend"]  # 'backend' は docker-compose サービス名で必要
 
-# ------------------------------
-# CORS設定
-# ------------------------------
+# CORS: ブラウザから来る Origin を列挙する（backend は不要）
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://frontend:3000",
+    "http://localhost:3000",   # ローカルで Vite
+    "http://frontend:3000",    # フロントをコンテナ名で叩く場合
 ]
 
+# 開発用に別 origin があるなら DEBUG 時に追加する（例: docker 内テスト用）
 if DEBUG:
-    # Docker 内での開発アクセスを追加
-    CORS_ALLOWED_ORIGINS.append("http://backend:8000")
+    # もしフロントが別 IP / network address を使うならここに追加
+    extra = os.getenv("CORS_EXTRA_ORIGINS", "")
+    if extra:
+        CORS_ALLOWED_ORIGINS += split_and_clean(extra)
+
+# CSRF: fetch で cookie を使うならこちらも設定（必ずスキーム付き）
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:3000").split(",")
+CSRF_TRUSTED_ORIGINS = [u.strip() for u in CSRF_TRUSTED_ORIGINS if u.strip()]
+
 
 # ------------------------------
 # Database設定
