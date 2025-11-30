@@ -13,6 +13,7 @@ django-filter
 
 # PostgreSQL ドライバ
 psycopg2-binary
+gunicorn
 
 # dotenv（環境変数読み込み）
 python-dotenv

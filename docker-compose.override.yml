@@ -1,17 +1,19 @@
+# docker-compose.override.yml (local)
 services:
   backend:
     env_file:
       - .env.local
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"   # 必要ならホストポートを変える（例: "8001:8000"）
 
   db:
-    image: postgres:15
+    ports:
+      - "5433:5432"   # ローカルではホストの 5432 を避ける
     environment:
+      # ローカル専用の DB 情報を直接書くか .env.local で上書きしてもOK
       POSTGRES_DB: todo_db
       POSTGRES_USER: todo_user
       POSTGRES_PASSWORD: kaibasensei
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"   # ホスト側で競合回避
-
-#docker-compose.override.yml
