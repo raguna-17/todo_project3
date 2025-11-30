@@ -60,8 +60,11 @@ CSRF_TRUSTED_ORIGINS = [u.strip() for u in CSRF_TRUSTED_ORIGINS if u.strip()]
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
     DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    }
+    "default": dj_database_url.parse(
+        os.getenv("DATABASE_URL") or "postgresql://todo_db_o1q3_user:BLOGjcAgQwpGxsaBrS6iLEd6kXkUUwRL@dpg-d4k20dvdiees73b7u51g-a/todo_db_o1q3",
+        conn_max_age=600
+    )
+}
 else:
     # 個別設定 fallback
     DATABASES = {
