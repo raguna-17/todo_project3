@@ -70,7 +70,7 @@ else:
             "NAME": os.getenv("POSTGRES_DB", "todo_db"),
             "USER": os.getenv("POSTGRES_USER", "todo_user"),
             "PASSWORD": os.getenv("POSTGRES_PASSWORD", "kaibasensei"),
-            "HOST": os.getenv("POSTGRES_HOST", "db"),
+            "HOST": os.getenv("POSTGRES_HOST", '127.0.0.1'),
             "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
         }
     }
