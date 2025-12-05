@@ -53,28 +53,24 @@ CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:3000"
 CSRF_TRUSTED_ORIGINS = [u.strip() for u in CSRF_TRUSTED_ORIGINS if u.strip()]
 
 
-# ------------------------------
-# Database設定
-# ------------------------------
-# DATABASE_URL があればそれを優先
+# 優先度: DATABASE_URL > 個別環境変数 > ローカルデフォルト
 DATABASE_URL = os.getenv("DATABASE_URL")
+
 if DATABASE_URL:
     DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL") or "postgresql://todo_db_o1q3_user:BLOGjcAgQwpGxsaBrS6iLEd6kXkUUwRL@dpg-d4k20dvdiees73b7u51g-a/todo_db_o1q3",
-        conn_max_age=600
-    )
-}
+        "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=False)
+    }
 else:
-    # 個別設定 fallback
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.getenv("POSTGRES_DB", "todo_db"),
             "USER": os.getenv("POSTGRES_USER", "todo_user"),
             "PASSWORD": os.getenv("POSTGRES_PASSWORD", "kaibasensei"),
-            "HOST": os.getenv("POSTGRES_HOST", '127.0.0.1'),
+            # NOTE: CI では DATABASE_URL を渡すので通常ここは localhost/127.0.0.1 で OK
+            "HOST": os.getenv("POSTGRES_HOST", "127.0.0.1"),
             "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
+            "CONN_MAX_AGE": 600,
         }
     }
 
