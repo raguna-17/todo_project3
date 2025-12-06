@@ -1,21 +1,26 @@
-# --- Python / Django 系 ---
+# --- Python / Django ---
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.sqlite3
+*.log
 
-# venv 系（もし存在するなら）
+# venv
 venv/
 env/
 
-# Django secret key とか環境変数ファイル
+# 環境変数
 .env
 .env.*
 
-# --- Docker 関連 ---
-# Docker が勝手に吐くキャッシュとかは普通リポジトリに不要
+# Django static files
+/staticfiles/
+/static/
+
+# --- Docker ---
 *.pid
+/postgres_data/
 
 # --- OS ゴミ ---
 .DS_Store
@@ -24,7 +29,11 @@ env/
 .vscode/
 .idea/
 
-# --- もしフロント作る予定があるなら（Reactとか） ---
+# --- フロント関連 ---
 node_modules/
 dist/
 build/
+
+# --- テスト / coverage ---
+.pytest_cache/
+.coverage
