@@ -68,7 +68,7 @@ else:
             "USER": os.getenv("POSTGRES_USER", "todo_user"),
             "PASSWORD": os.getenv("POSTGRES_PASSWORD", "kaibasensei"),
             # NOTE: CI では DATABASE_URL を渡すので通常ここは localhost/127.0.0.1 で OK
-            "HOST": os.getenv("POSTGRES_HOST", "127.0.0.1"),
+            "HOST": os.getenv("POSTGRES_HOST", "db"),
             "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
             "CONN_MAX_AGE": 600,
         }
