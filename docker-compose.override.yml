@@ -10,6 +10,13 @@ services:
       - "3333:3333"   # 必要ならホストポートを変える（例: "8001:8000"）
     depends_on:
       - db
+    environment:
+      POSTGRES_DB: todo_db
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: kaibasensei
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql://todo_user:kaibasensei@127.0.0.1:5432/todo_db
 
   db:
     ports:

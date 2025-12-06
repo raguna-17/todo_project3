@@ -22,8 +22,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: todo_backend
-    environment:
-       DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST:-db}:${POSTGRES_PORT:-5432}/${POSTGRES_DB}"
+    env_file:
+    - .env.prod
+
 
     ports:
       - "3333:3333"
