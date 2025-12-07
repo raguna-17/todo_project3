@@ -7,8 +7,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,12 +20,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: todo_backend
-    env_file:
-    - .env.prod
-
-
-    ports:
-      - "3333:3333"
+    # env_file / environment は各 override/prod で注入する（環境依存）
     depends_on:
       - db
     restart: unless-stopped

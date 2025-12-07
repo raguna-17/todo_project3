@@ -1,29 +1,15 @@
-# Django 本体
-Django>=5.2
-
-# REST API
-djangorestframework
-djangorestframework-simplejwt
-
-# CORS 対応
-django-cors-headers
-
-# フィルタリング
-django-filter
-
-# PostgreSQL ドライバ
-psycopg2-binary
-gunicorn
-
-# dotenv（環境変数読み込み）
-python-dotenv
-dj-database-url
-
-# テスト関連
-pytest
-pytest-django
-pytest-cov
-factory-boy
-
-
+Django==5.2.6
+djangorestframework==3.14.0
+djangorestframework-simplejwt==4.7.2
+django-cors-headers==4.0.0
+django-filter==23.1
+psycopg2-binary==2.9.7
+gunicorn==20.1.0
+python-dotenv==1.0.0
+dj-database-url==1.0.0
+whitenoise==6.5.0
+pytest==7.4.0
+pytest-django==4.5.2
+pytest-cov==4.1.0
+factory-boy==3.3.3
 #requirements.txt

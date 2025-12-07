@@ -24,8 +24,15 @@ def env_bool(name, default=False):
 DEBUG = env_bool("DJANGO_DEBUG", default=True)  # 開発では True にしておく
 
 
-def split_and_clean(s):
-    return [p.strip() for p in s.split(",") if p.strip()]
+def split_and_clean(value: str):
+    items = [v.strip() for v in value.split(",") if v.strip()]
+    cleaned = []
+    for h in items:
+        # URL スキームが混じってたら落とす
+        h = h.replace("https://", "").replace("http://", "")
+        cleaned.append(h)
+    return cleaned
+
 
 # ALLOWED_HOSTS: 環境変数があればそれを優先、なければ開発用の明示的ホストのみ
 allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
@@ -52,8 +59,6 @@ if DEBUG:
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", "http://localhost:3000").split(",")
 CSRF_TRUSTED_ORIGINS = [u.strip() for u in CSRF_TRUSTED_ORIGINS if u.strip()]
 
-
-# 優先度: DATABASE_URL > 個別環境変数 > ローカルデフォルト
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
@@ -61,18 +66,34 @@ if DATABASE_URL:
         "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=False)
     }
 else:
+    # 優先: POSTGRES_HOST 環境変数 -> Docker 内判定 -> ローカルデフォルト(127.0.0.1)
+    def _guess_default_host():
+        # コンテナ内ならサービス名で解決できることが多い（docker-compose の service name）
+        # /.dockerenv が存在する場合はコンテナ内実行とみなす
+        try:
+            if os.path.exists("/.dockerenv"):
+                # コンテナ内なら docker-compose の service 名を使う想定
+                # ここはあなたの compose のサービス名（例: postgres, db）に合わせる
+                return os.getenv("POSTGRES_HOST_IN_DOCKER", "postgres")
+        except Exception:
+            pass
+        # デフォルトはローカル実行向け
+        return "127.0.0.1"
+
+    POSTGRES_HOST = os.getenv("POSTGRES_HOST", _guess_default_host())
+
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.getenv("POSTGRES_DB", "todo_db"),
             "USER": os.getenv("POSTGRES_USER", "todo_user"),
             "PASSWORD": os.getenv("POSTGRES_PASSWORD", "kaibasensei"),
-            # NOTE: CI では DATABASE_URL を渡すので通常ここは localhost/127.0.0.1 で OK
-            "HOST": os.getenv("POSTGRES_HOST", "db"),
+            "HOST": POSTGRES_HOST,
             "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
             "CONN_MAX_AGE": 600,
         }
     }
+
 
 # ------------------------------
 # アプリケーション設定
@@ -100,6 +121,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = 'project.urls'

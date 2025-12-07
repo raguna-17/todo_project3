@@ -1,27 +1,25 @@
 # docker-compose.override.yml (local)
 services:
-  backend:
-    env_file:
-      - .env
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3333:3333"
-    depends_on:
-      - db
-    environment:
-      POSTGRES_DB: todo_db
-      POSTGRES_USER: todo_user
-      POSTGRES_PASSWORD: kaibasensei
-      POSTGRES_HOST: db       # ← 修正: 127.0.0.1 → db
-      POSTGRES_PORT: 5432
-      DATABASE_URL: postgresql://todo_user:kaibasensei@db:5432/todo_db  # ← 修正
-
   db:
+    # ローカルではデータをホストに保存して使いたいことが多いのでポートを公開
     ports:
       - "5433:5432"
     environment:
       POSTGRES_DB: todo_db
       POSTGRES_USER: todo_user
       POSTGRES_PASSWORD: kaibasensei
+
+  backend:
+    env_file:
+      - .env
+    ports:
+      - "3333:3333"
+    environment:
+      # コンテナ内からは service name (= db) で解決させる
+      POSTGRES_DB: todo_db
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: kaibasensei
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      # dj-database-url を使うならここで作っておくと便利
+      DATABASE_URL: "postgresql://todo_user:kaibasensei@db:5432/todo_db"

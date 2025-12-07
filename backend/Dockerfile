@@ -40,14 +40,17 @@ COPY . /app/
 # 作業ディレクトリと pytest cache ディレクトリの権限を app に変更
 RUN mkdir -p /tmp/.pytest_cache && chown -R app:app /app /tmp/.pytest_cache
 
+COPY ./entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 # 作業ユーザーを app に変更
 USER app
 
-# ポート公開
-EXPOSE 8000
+# expose and run on 3333
+EXPOSE 3333
 
-# Gunicorn でアプリ起動
-CMD ["gunicorn", "project.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--log-level", "info"]
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD ["gunicorn", "project.wsgi:application", "--bind", "0.0.0.0:3333", "--workers", "3", "--log-level", "info"]
 
 
 #backend/Dockerfile
