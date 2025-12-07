@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # ビルドに必要なライブラリ
 RUN apt-get update && \
-    apt-get install -y build-essential gcc libpq-dev --no-install-recommends && \
+    apt-get install -y build-essential gcc libpq-dev netcat-openbsd --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
 # requirements をコピーして wheel を作成
@@ -33,6 +33,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=builder /wheels /wheels
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-index --find-links=/wheels -r /app/requirements.txt
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
 
 # アプリケーションコードをコピー
 COPY . /app/

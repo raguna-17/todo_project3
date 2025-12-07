@@ -6,11 +6,14 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ci-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    # --- Postgres service ---
     services:
       postgres:
         image: postgres:15
@@ -18,26 +21,37 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
+        # ports を runner に公開する必要は基本的にない（hostname 'postgres' でアクセス可能）
+        # ports:
+        #   - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U postgres -d test_db"
+          --health-cmd=pg_isready -U postgres -d test_db
           --health-interval=5s
           --health-timeout=5s
           --health-retries=20
 
-    # 確実に全ステップで同じ DB URL を使う
     env:
+      # CI 上で全ステップが同じ DB に確実に繋がるように明示
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
       PGPASSWORD: postgres
+      # Django が DATABASE_URL を拾うことを想定。settings.py が DATABASE_URL を優先していることを確認。
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -50,21 +64,27 @@ jobs:
           sudo apt-get install -y postgresql-client
         # env inherited from job
 
-      - name: Wait for Postgres to accept connections
-        # Runner に pg_isready が入ったので、明示的に待つ（最大 60s）
+      - name: Wait for Postgres to accept connections (with timeout)
         run: |
-          for i in $(seq 1 60); do
+          set -e
+          MAX_WAIT=60
+          for i in $(seq 1 $MAX_WAIT); do
             if pg_isready -h postgres -p 5432 -U postgres -d test_db >/dev/null 2>&1; then
-              echo "Postgres is ready"
+              echo "Postgres is ready (after ${i}s)"
               break
             fi
-            echo "Waiting for Postgres ($i/60)..."
+            echo "Waiting for Postgres ($i/${MAX_WAIT})..."
             sleep 1
+            if [ "$i" -eq "$MAX_WAIT" ]; then
+              echo "Postgres did not become ready within ${MAX_WAIT} seconds"
+              exit 1
+            fi
           done
 
       - name: Run migrations
         working-directory: backend
-        run: python manage.py migrate --noinput
+        run: |
+          python manage.py migrate --noinput
 
       - name: Run tests with coverage
         working-directory: backend
@@ -83,12 +103,17 @@ jobs:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
-          curl -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
+          set -euo pipefail
+          resp=$(curl -s -o /dev/stderr -w "%{http_code}" -X POST "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
             -H "Accept: application/json" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
-            -d '{}'
-
-
+            -d '{}')
+          if [ "$resp" -ge 200 ] && [ "$resp" -lt 300 ]; then
+            echo "Render deploy triggered (HTTP $resp)"
+          else
+            echo "Render deploy failed (HTTP $resp)"
+            exit 1
+          fi
 
 #.github/workflows/ci-and-deploy-to-render.yml

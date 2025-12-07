@@ -66,18 +66,13 @@ if DATABASE_URL:
         "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=600, ssl_require=False)
     }
 else:
-    # 優先: POSTGRES_HOST 環境変数 -> Docker 内判定 -> ローカルデフォルト(127.0.0.1)
     def _guess_default_host():
-        # コンテナ内ならサービス名で解決できることが多い（docker-compose の service name）
-        # /.dockerenv が存在する場合はコンテナ内実行とみなす
         try:
             if os.path.exists("/.dockerenv"):
-                # コンテナ内なら docker-compose の service 名を使う想定
-                # ここはあなたの compose のサービス名（例: postgres, db）に合わせる
-                return os.getenv("POSTGRES_HOST_IN_DOCKER", "postgres")
+                # Docker コンテナ内のデフォルト service name を 'db' に変更
+                return os.getenv("POSTGRES_HOST_IN_DOCKER", "db")
         except Exception:
             pass
-        # デフォルトはローカル実行向け
         return "127.0.0.1"
 
     POSTGRES_HOST = os.getenv("POSTGRES_HOST", _guess_default_host())
@@ -93,6 +88,7 @@ else:
             "CONN_MAX_AGE": 600,
         }
     }
+
 
 
 # ------------------------------
